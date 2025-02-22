@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../models/point.dart';
-import '../services/game_notifier.dart';
-import '../services/point_painter.dart';
-import '../services/square_painter.dart';
+import '../../model/point.dart';
+import '../../model/services/game_notifier.dart';
+import '../../view_model/point_painter.dart';
+import '../../view_model/square_painter.dart';
 
 class GameGrid extends ConsumerWidget {
   const GameGrid({super.key});

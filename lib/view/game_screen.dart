@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqflite/sqflite.dart';
 
-import '../models/game_state.dart';
-import '../services/game_notifier.dart';
-import '../widgets/game_grid.dart';
-import '../widgets/game_setting_dialog.dart';
-import '../widgets/player_score_board.dart';
+import '../model/game_state.dart';
+import '../model/repositories/game_database.dart';
+import '../model/services/game_notifier.dart';
+import 'widgets/game_grid.dart';
+import 'game_setting_dialog.dart';
+import 'widgets/player_score_board.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
   final Database database;
@@ -18,6 +19,19 @@ class GameScreen extends ConsumerStatefulWidget {
 }
 
 class GameScreenState extends ConsumerState<GameScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _loadGameState();
+  }
+
+  Future<void> _loadGameState() async {
+    final lastState = await GameDatabase.loadLastGameState(widget.database);
+    if (lastState != null && !lastState.isGameOver && mounted) {
+      ref.read(gameProvider.notifier).restoreGameState(lastState);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final gameState = ref.watch(gameProvider);

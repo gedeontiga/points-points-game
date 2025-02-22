@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:gif_view/gif_view.dart';
 import 'package:sqflite/sqflite.dart';
 
-import '../widgets/game_setting_dialog.dart';
-import '../widgets/widget_text.dart';
+import '../model/repositories/game_database.dart';
+import 'game_screen.dart';
+import 'game_setting_dialog.dart';
+import 'widgets/widget_text.dart';
 
 class SplashScreen extends StatefulWidget {
   final Database database;
@@ -24,20 +26,33 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-
-    // Planifier l'apparition du texte après 1 secondes
     Timer(const Duration(seconds: 1), () {
       _animateText();
     });
-
-    // Naviguer vers la page de configuration après 6 secondes
     Timer(const Duration(seconds: 4), () {
+      _checkAndNavigate();
+    });
+  }
+
+  Future<void> _checkAndNavigate() async {
+    final lastState = await GameDatabase.loadLastGameState(widget.database);
+    if (!mounted) return;
+
+    if (lastState != null && !lastState.isGameOver) {
+      // Game in progress - go directly to game screen
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => GameScreen(database: widget.database),
+        ),
+      );
+    } else {
+      // No game in progress or game is over - show settings
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (context) => GameSettingsDialog(database: widget.database),
         ),
       );
-    });
+    }
   }
 
   void _animateText() {

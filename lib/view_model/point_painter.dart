@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../models/game_state.dart';
-import '../models/point.dart';
+import '../model/game_state.dart';
+import '../model/point.dart';
 
 class PointPainter extends CustomPainter {
   final Point point;

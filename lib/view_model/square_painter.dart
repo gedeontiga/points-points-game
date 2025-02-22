@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../models/game_state.dart';
-import '../models/point.dart';
-import '../models/square.dart';
+import '../model/game_state.dart';
+import '../model/point.dart';
+import '../model/square.dart';
 
 class SquarePainter extends CustomPainter {
   final Square square;

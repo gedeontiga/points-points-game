@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqflite/sqflite.dart';
 
-import '../database/game_database.dart';
-import '../models/game_state.dart';
-import '../models/player.dart';
-import '../models/point.dart';
-import '../models/square.dart';
+import '../repositories/game_database.dart';
+import '../game_state.dart';
+import '../player.dart';
+import '../point.dart';
+import '../square.dart';
 
 final gameProvider = StateNotifierProvider<GameNotifier, GameState>((ref) {
   return GameNotifier();

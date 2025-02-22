@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
-import 'database/game_database.dart';
-import 'screens/spash_screen.dart';
-import 'services/game_notifier.dart';
+import 'model/repositories/game_database.dart';
+import 'view/spash_screen.dart';
+// import 'services/game_notifier.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,8 +15,8 @@ void main() async {
     version: 1,
   );
 
-  final gameNotifier = GameNotifier();
-  await gameNotifier.loadGame(database);
+  // final gameNotifier = GameNotifier();
+  // await gameNotifier.loadGame(database);
 
   runApp(
     ProviderScope(

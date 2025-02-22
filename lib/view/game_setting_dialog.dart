@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqflite/sqflite.dart';
 
-import '../database/game_database.dart';
-import '../screens/game_screen.dart';
-import '../services/game_notifier.dart';
+import '../model/repositories/game_database.dart';
+import 'game_screen.dart';
+import '../model/services/game_notifier.dart';
 
 class GameSettingsDialog extends ConsumerStatefulWidget {
   final Database database;
@@ -32,16 +32,25 @@ class GameSettingsDialogState extends ConsumerState<GameSettingsDialog> {
   @override
   void initState() {
     super.initState();
-    _loadLastGameState();
+    _checkGameState();
   }
 
-  Future<void> _loadLastGameState() async {
+  Future<void> _checkGameState() async {
     final lastState = await GameDatabase.loadLastGameState(widget.database);
-    if (lastState != null && mounted) {
+    if (lastState != null && !lastState.isGameOver && mounted) {
+      // If there's an ongoing game, skip settings and go directly to game screen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (BuildContext context) =>
+              GameScreen(database: widget.database),
+        ),
+      );
+    } else if (lastState != null && lastState.isGameOver && mounted) {
+      // If game is over, show resume dialog
       showDialog(
-        context: context, // Assurez-vous d'utiliser BuildContext ici
+        context: context,
         builder: (BuildContext context) => AlertDialog(
-          // Spécifiez explicitement BuildContext
           title: const Text('Resume previous game?'),
           actions: [
             TextButton(
@@ -56,9 +65,8 @@ class GameSettingsDialogState extends ConsumerState<GameSettingsDialog> {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (BuildContext context) => GameScreen(
-                        database: widget
-                            .database), // Spécifiez explicitement BuildContext
+                    builder: (BuildContext context) =>
+                        GameScreen(database: widget.database),
                   ),
                 );
               },

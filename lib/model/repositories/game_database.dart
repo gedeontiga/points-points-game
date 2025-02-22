@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 
-import '../models/game_state.dart';
-import '../models/player.dart';
+import '../game_state.dart';
+import '../player.dart';
 
 class GameDatabase {
   static Future<void> createTables(Database db) async {

@@ -30,7 +30,7 @@ class GameScreenState extends ConsumerState<GameScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Blocus'),
+        title: const Text('Maths Points Game'),
         actions: [
           IconButton(
             icon: const Icon(Icons.restart_alt),
@@ -80,12 +80,34 @@ class GameScreenState extends ConsumerState<GameScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: const Text('Game Over'),
+        title: Text(
+          'End of game',
+          style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Helvetica',
+              color: winner.color),
+        ),
         content: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Player ${winner.id} Wins!'),
-            Text('Score: ${winner.score}'),
+            Text(
+              'Player ${winner.id} Wins!',
+              style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Helvetica'),
+            ),
+            Text(
+              'Score: ${winner.score}',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Helvetica',
+                color: winner.color,
+              ),
+            ),
           ],
         ),
         actions: [

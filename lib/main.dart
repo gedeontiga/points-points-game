@@ -5,15 +5,18 @@ import 'package:sqflite/sqflite.dart';
 
 import 'database/game_database.dart';
 import 'screens/spash_screen.dart';
+import 'services/game_notifier.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   final database = await openDatabase(
     join(await getDatabasesPath(), 'game_database.db'),
     onCreate: (db, version) => GameDatabase.createTables(db),
     version: 1,
   );
+
+  final gameNotifier = GameNotifier();
+  await gameNotifier.loadGame(database);
 
   runApp(
     ProviderScope(
@@ -24,7 +27,6 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   final Database database;
-
   const MyApp({required this.database, super.key});
 
   @override

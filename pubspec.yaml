@@ -1,6 +1,6 @@
-name: blocus
+name: "maths_points_game"
 description: "Implementation of points-points mathematics game."
-publish_to: 'none'
+publish_to: "none"
 
 version: 1.0.0+1
 
@@ -29,12 +29,10 @@ dev_dependencies:
   flutter_lints: ^4.0.0
 flutter:
   assets:
-    - "assets/blocus_logo.gif"
+    - "assets/maths_points_game_logo.gif"
   uses-material-design: true
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/blocus_logo.png" # Chemin de votre icône
-
-
+  image_path: "assets/maths_points_game_logo.png" # Chemin de votre icône
 

@@ -1,4 +1,4 @@
-# blocus
+# maths_points_game
 
 A new Flutter project.
 

@@ -16,7 +16,7 @@ class SquarePainter extends CustomPainter {
     if (square.points.length != 4) return;
 
     final paint = Paint()
-      ..color = square.color.withOpacity(0.8)
+      ..color = square.color.withAlpha(204)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
 
@@ -38,8 +38,8 @@ class SquarePainter extends CustomPainter {
     final path = Path();
 
     void addPointToPath(Point p, bool isFirst) {
-      double x = p.col * gridSpacing;
-      double y = p.row * gridSpacing;
+      double x = p.col * gridSpacing + gridSpacing / 2;
+      double y = p.row * gridSpacing + gridSpacing / 2;
       if (isFirst) {
         path.moveTo(x, y);
       } else {

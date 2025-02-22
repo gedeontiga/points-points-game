@@ -17,21 +17,21 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   String _atgText = '';
-  String _blocusText = '';
+  String _mathsPointsGameText = '';
   final String _fullAtgText = 'ATG';
-  final String _fullBlocusText = 'blocus game';
+  final String _fullMathsPointsGameText = 'Maths points game';
 
   @override
   void initState() {
     super.initState();
 
-    // Planifier l'apparition du texte après 3 secondes
-    Timer(const Duration(seconds: 3), () {
+    // Planifier l'apparition du texte après 1 secondes
+    Timer(const Duration(seconds: 1), () {
       _animateText();
     });
 
     // Naviguer vers la page de configuration après 6 secondes
-    Timer(const Duration(seconds: 6), () {
+    Timer(const Duration(seconds: 4), () {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (context) => GameSettingsDialog(database: widget.database),
@@ -53,15 +53,15 @@ class _SplashScreenState extends State<SplashScreen> {
       });
     }
 
-    // Animation de "blocus game" sur 1 seconde, commençant après "ATG"
-    var blocusDuration = const Duration(milliseconds: 1000);
-    var blocusInterval =
-        blocusDuration.inMilliseconds ~/ _fullBlocusText.length;
+    // Animation de "Maths points game" sur 1 seconde, commençant après "ATG"
+    var mathsPointsGameDuration = const Duration(milliseconds: 1000);
+    var mathsPointsGameInterval = mathsPointsGameDuration.inMilliseconds ~/
+        _fullMathsPointsGameText.length;
 
-    for (var i = 0; i < _fullBlocusText.length; i++) {
-      Timer(Duration(milliseconds: 2000 + (i * blocusInterval)), () {
+    for (var i = 0; i < _fullMathsPointsGameText.length; i++) {
+      Timer(Duration(milliseconds: 2000 + (i * mathsPointsGameInterval)), () {
         setState(() {
-          _blocusText = _fullBlocusText.substring(0, i + 1);
+          _mathsPointsGameText = _fullMathsPointsGameText.substring(0, i + 1);
         });
       });
     }
@@ -77,10 +77,10 @@ class _SplashScreenState extends State<SplashScreen> {
           children: [
             // Logo GIF
             GifView.asset(
-              'assets/blocus_logo.gif',
+              'assets/maths_points_game_logo.gif',
               width: 200, // Ajustez selon la taille souhaitée
               height: 200, // Ajustez selon la taille souhaitée
-              frameRate: 25, // Ajustez selon les besoins
+              frameRate: 20, // Ajustez selon les besoins
             ),
             const SizedBox(height: 40),
             // Textes animés
@@ -96,7 +96,7 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             const SizedBox(height: 5),
             Text(
-              _blocusText,
+              _mathsPointsGameText,
               style: const TextStyle(
                 fontSize: 24,
                 color: Colors.black87,

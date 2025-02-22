@@ -2,7 +2,9 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sqflite/sqflite.dart';
 
+import '../database/game_database.dart';
 import '../models/game_state.dart';
 import '../models/player.dart';
 import '../models/point.dart';
@@ -15,6 +17,13 @@ final gameProvider = StateNotifierProvider<GameNotifier, GameState>((ref) {
 class GameNotifier extends StateNotifier<GameState> {
   GameNotifier() : super(GameState.initial());
 
+  Future<void> loadGame(Database db) async {
+    final savedState = await GameDatabase.loadLastGameState(db);
+    if (savedState != null) {
+      state = savedState;
+    }
+  }
+
   void initializeGame(int gridSize, Color player1Color, Color player2Color) {
     state = GameState(
       points: generateEmptyGrid(gridSize),
@@ -23,11 +32,16 @@ class GameNotifier extends StateNotifier<GameState> {
       player2: Player(id: 2, color: player2Color),
       currentPlayerId: 1,
       gridSize: gridSize,
+      isGameOver: false,
     );
   }
 
   void restoreGameState(GameState savedState) {
     state = savedState;
+  }
+
+  Future<void> saveGame(Database db) async {
+    await GameDatabase.saveGameState(db, state);
   }
 
   Map<String, Color> generateEmptyGrid(int size) {

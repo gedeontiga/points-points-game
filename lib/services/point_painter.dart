@@ -16,7 +16,9 @@ class PointPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final borderPaint = Paint()
-      ..color = Colors.black
+      ..color = (gameState.points[point.key] == Colors.transparent
+          ? Colors.black
+          : gameState.points[point.key])!
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
 

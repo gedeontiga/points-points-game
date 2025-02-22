@@ -1,6 +1,6 @@
 {
-    "name": "blocus",
-    "short_name": "blocus",
+    "name": "maths_points_game",
+    "short_name": "maths_points_game",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

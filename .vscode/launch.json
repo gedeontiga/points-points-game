@@ -5,18 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "blocus",
+            "name": "maths_points_game",
             "request": "launch",
             "type": "dart"
         },
         {
-            "name": "blocus (profile mode)",
+            "name": "maths_points_game (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"
         },
         {
-            "name": "blocus (release mode)",
+            "name": "maths_points_game (release mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"

@@ -13,50 +13,56 @@ class GameGrid extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final gameState = ref.watch(gameProvider);
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        for (var row = 0; row < gameState.gridSize; row++)
-          Row(
+    return SizedBox(
+      width: gameState.gridSize * 32.0,
+      height: gameState.gridSize * 32.0,
+      child: Stack(
+        children: [
+          // Carrés
+          ...gameState.squares.map((square) => CustomPaint(
+                size: Size(
+                  gameState.gridSize * 32.0,
+                  gameState.gridSize * 32.0,
+                ),
+                painter: SquarePainter(
+                  square: square,
+                  gameState: gameState,
+                ),
+              )),
+          // Grille de points
+          Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              for (var col = 0; col < gameState.gridSize; col++)
-                GestureDetector(
-                  behavior: HitTestBehavior.translucent,
-                  onTapDown: (details) {
-                    ref
-                        .read(gameProvider.notifier)
-                        .selectPoint(Point(row, col));
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(16.0),
-                    child: // Dans GameGrid, remplacer la partie existante qui gère les CustomPainter par :
-                        Stack(
-                      children: [
-                        CustomPaint(
-                          painter: PointPainter(
-                            point: Point(row, col),
-                            gameState: gameState,
+              for (var row = 0; row < gameState.gridSize; row++)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    for (var col = 0; col < gameState.gridSize; col++)
+                      GestureDetector(
+                        behavior: HitTestBehavior.translucent,
+                        onTapDown: (details) {
+                          ref
+                              .read(gameProvider.notifier)
+                              .selectPoint(Point(row, col));
+                        },
+                        child: Container(
+                          width: 32.0,
+                          height: 32.0,
+                          padding: const EdgeInsets.all(8.0),
+                          child: CustomPaint(
+                            painter: PointPainter(
+                              point: Point(row, col),
+                              gameState: gameState,
+                            ),
                           ),
                         ),
-                        if (row ==
-                                gameState
-                                    .squares.firstOrNull?.points.first.row &&
-                            col ==
-                                gameState.squares.firstOrNull?.points.first.col)
-                          ...gameState.squares.map((square) => CustomPaint(
-                                painter: SquarePainter(
-                                  square: square,
-                                  gameState: gameState,
-                                ),
-                              )),
-                      ],
-                    ),
-                  ),
+                      ),
+                  ],
                 ),
             ],
           ),
-      ],
+        ],
+      ),
     );
   }
 }

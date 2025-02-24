@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Blocus',
+      title: 'Points - Points',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         useMaterial3: true,

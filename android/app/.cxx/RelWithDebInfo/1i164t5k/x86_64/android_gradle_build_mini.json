@@ -1,0 +1,20 @@
+{
+  "buildFiles": [
+    "/home/gedeon/flutter/packages/flutter_tools/gradle/src/main/groovy/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/home/gedeon/Android/Sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/home/gedeon/Documents/App/blocus/android/app/.cxx/RelWithDebInfo/1i164t5k/x86_64",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/home/gedeon/Android/Sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/home/gedeon/Documents/App/blocus/android/app/.cxx/RelWithDebInfo/1i164t5k/x86_64",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {}
+}

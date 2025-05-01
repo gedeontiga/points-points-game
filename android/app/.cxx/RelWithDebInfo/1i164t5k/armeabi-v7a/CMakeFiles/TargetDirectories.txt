@@ -1,0 +1,2 @@
+/home/gedeon/Documents/App/blocus/android/app/.cxx/RelWithDebInfo/1i164t5k/armeabi-v7a/CMakeFiles/edit_cache.dir
+/home/gedeon/Documents/App/blocus/android/app/.cxx/RelWithDebInfo/1i164t5k/armeabi-v7a/CMakeFiles/rebuild_cache.dir

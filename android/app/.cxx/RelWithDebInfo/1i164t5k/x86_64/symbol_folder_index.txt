@@ -1,0 +1,1 @@
+/home/gedeon/Documents/App/blocus/build/app/intermediates/cxx/RelWithDebInfo/1i164t5k/obj/x86_64

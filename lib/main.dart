@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
-import 'model/repositories/game_database.dart';
-import 'view/spash_screen.dart';
+import 'models/repositories/game_database.dart';
+import 'screens/spash_screen.dart';
 // import 'services/game_notifier.dart';
 
 void main() async {

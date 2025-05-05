@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -285,47 +286,161 @@ class GameSettingsDialogState extends ConsumerState<GameSettingsDialog>
   }
 
   Widget _buildGridSizeSelector() {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
-            spreadRadius: 1,
+    return LayoutBuilder(builder: (context, constraints) {
+      // Adapt to different screen sizes
+      final isSmallScreen = constraints.maxWidth < 400;
+
+      return Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 12,
+              spreadRadius: 2,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeInOut,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color:
+                  Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
+              width: 1.5,
+            ),
           ),
-        ],
-      ),
-      child: SegmentedButton<int>(
-        style: ButtonStyle(
-          backgroundColor: WidgetStateProperty.resolveWith<Color?>(
-            (Set<WidgetState> states) {
-              if (states.contains(WidgetState.selected)) {
-                return Theme.of(context).primaryColor;
-              }
-              return null;
+          child: SegmentedButton<int>(
+            style: ButtonStyle(
+              padding: WidgetStateProperty.all(
+                EdgeInsets.symmetric(
+                    vertical: 12, horizontal: isSmallScreen ? 4 : 8),
+              ),
+              backgroundColor: WidgetStateProperty.resolveWith<Color?>(
+                (Set<WidgetState> states) {
+                  if (states.contains(WidgetState.selected)) {
+                    return Theme.of(context).colorScheme.primary;
+                  }
+                  return null;
+                },
+              ),
+              foregroundColor: WidgetStateProperty.resolveWith<Color?>(
+                (Set<WidgetState> states) {
+                  if (states.contains(WidgetState.selected)) {
+                    return Theme.of(context).colorScheme.onPrimary;
+                  }
+                  return Theme.of(context).colorScheme.primary;
+                },
+              ),
+              textStyle: WidgetStateProperty.all(
+                const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                ),
+              ),
+              shape: WidgetStateProperty.all(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              overlayColor: WidgetStateProperty.resolveWith<Color?>(
+                (Set<WidgetState> states) {
+                  if (states.contains(WidgetState.hovered)) {
+                    return Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.1);
+                  }
+                  if (states.contains(WidgetState.pressed)) {
+                    return Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.2);
+                  }
+                  return null;
+                },
+              ),
+            ),
+            segments: [
+              ButtonSegment<int>(
+                value: 6,
+                label: _buildSegmentLabel('6×6', 'Easy'),
+              ),
+              ButtonSegment<int>(
+                value: 8,
+                label: _buildSegmentLabel('8×8', 'Medium'),
+              ),
+              ButtonSegment<int>(
+                value: 10,
+                label: _buildSegmentLabel('10×10', 'Hard'),
+              ),
+              ButtonSegment<int>(
+                value: 12,
+                label: _buildSegmentLabel('12×12', 'Expert'),
+              ),
+            ],
+            selected: {gridSize},
+            onSelectionChanged: (Set<int> newSelection) {
+              setState(() {
+                gridSize = newSelection.first;
+              });
+              // Optional: Add haptic feedback
+              HapticFeedback.lightImpact();
+
+              // Optional: Show a brief confirmation
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                      'Grid size set to ${newSelection.first}×${newSelection.first}'),
+                  duration: const Duration(seconds: 1),
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              );
             },
-          ),
-          foregroundColor: WidgetStateProperty.resolveWith<Color?>(
-            (Set<WidgetState> states) {
-              if (states.contains(WidgetState.selected)) {
-                return Colors.white;
-              }
-              return Theme.of(context).primaryColor;
-            },
+            showSelectedIcon: false,
           ),
         ),
-        segments: const [
-          ButtonSegment(value: 6, label: Text('6×6')),
-          ButtonSegment(value: 8, label: Text('8×8')),
-          ButtonSegment(value: 10, label: Text('10×10')),
-          ButtonSegment(value: 12, label: Text('12×12')),
-        ],
-        selected: {gridSize},
-        onSelectionChanged: (Set<int> newSelection) {
-          setState(() => gridSize = newSelection.first);
-        },
-      ),
+      );
+    });
+  }
+
+// Helper method to create a more informative segment label
+  Widget _buildSegmentLabel(String size, String difficulty) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isSmallScreen = constraints.maxWidth < 400;
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                size,
+                style: TextStyle(
+                  fontSize: isSmallScreen ? 13 : 15,
+                ),
+              ),
+              SizedBox(height: isSmallScreen ? 2 : 4),
+              Text(
+                difficulty,
+                style: TextStyle(
+                  fontSize: isSmallScreen ? 9 : 10,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

@@ -1,4 +1,4 @@
-package com.example.maths_points_game
+package com.example.squares_conquest
 
 import io.flutter.embedding.android.FlutterActivity
 

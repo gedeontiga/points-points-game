@@ -1,10 +1,10 @@
-import 'dart:developer';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqflite/sqflite.dart';
 
-import '../../models/repositories/game_database.dart';
+import 'game_database.dart';
 import '../../models/game_state.dart';
 import '../../models/player.dart';
 import '../../models/point.dart';
@@ -15,12 +15,79 @@ final gameProvider = StateNotifierProvider<GameNotifier, GameState>((ref) {
 });
 
 class GameNotifier extends StateNotifier<GameState> {
-  GameNotifier() : super(GameState.initial());
+  // Timer? _autoSaveTimer;
+  final bool _loadingFromDatabase = false;
+
+  GameNotifier() : super(GameState.initial()) {
+    // _startAutoSaveTimer();
+  }
+
+  void restartGame() {
+    if (state.points.isNotEmpty) {
+      initializeGame(state.gridSize, state.player1.color, state.player2.color);
+    }
+  }
+
   Future<void> loadGame(Database db) async {
     final savedState = await GameDatabase.loadLastGameState(db);
     if (savedState != null) {
-      state = savedState;
+      final reconstructedState = _reconstructStateWithSquares(savedState);
+      state = reconstructedState;
     }
+  }
+
+  Future<void> autoSave(Database db) async {
+    // Only save if a game is active and not over.
+    if (state.points.isNotEmpty && !state.isGameOver) {
+      await GameDatabase.saveGameState(db, state);
+    }
+  }
+
+  GameState _reconstructStateWithSquares(GameState savedState) {
+    // ... your existing reconstruction logic is correct ...
+    final reconstructedSquares = <Square>[];
+    final Map<String, Color> points = savedState.points;
+    for (int row = 0; row < savedState.gridSize; row++) {
+      for (int col = 0; col < savedState.gridSize; col++) {
+        final potentialPoints = [
+          Point(row, col),
+          Point(row, col + 1),
+          Point(row + 1, col),
+          Point(row + 1, col + 1),
+        ];
+        // This check is important: make sure we are inside the grid bounds
+        if (potentialPoints.any((p) =>
+            p.row >= savedState.gridSize || p.col >= savedState.gridSize)) {
+          continue;
+        }
+        final firstPointKey = potentialPoints[0].key;
+        final color = points[firstPointKey];
+        if (color != null && color != Colors.transparent) {
+          bool allSameColor = true;
+          for (var p in potentialPoints) {
+            if (points[p.key] != color) {
+              allSameColor = false;
+              break;
+            }
+          }
+          if (allSameColor) {
+            final playerId = color == savedState.player1.color ? 1 : 2;
+            reconstructedSquares.add(
+              Square(
+                points: potentialPoints,
+                color: color,
+                playerId: playerId,
+              ),
+            );
+          }
+        }
+      }
+    }
+    return savedState.copyWith(squares: reconstructedSquares);
+  }
+
+  void resetGameState() {
+    state = GameState.initial();
   }
 
   void initializeGame(int gridSize, Color player1Color, Color player2Color) {
@@ -35,12 +102,14 @@ class GameNotifier extends StateNotifier<GameState> {
     );
   }
 
-  void restoreGameState(GameState savedState) {
-    state = savedState;
+  Future<void> saveGame(Database db) async {
+    if (!_loadingFromDatabase) {
+      await GameDatabase.saveGameState(db, state);
+    }
   }
 
-  Future<void> saveGame(Database db) async {
-    await GameDatabase.saveGameState(db, state);
+  void restoreGameState(GameState savedState) {
+    state = savedState;
   }
 
   Map<String, Color> generateEmptyGrid(int size) {
@@ -71,11 +140,13 @@ class GameNotifier extends StateNotifier<GameState> {
               square.points.every((p) => potentialSquarePoints
                   .any((pp) => p.row == pp.row && p.col == pp.col)));
           if (!existingSquare) {
-            squares.add(Square(
-              points: potentialSquarePoints,
-              color: player.color,
-              playerId: player.id,
-            ));
+            squares.add(
+              Square(
+                points: potentialSquarePoints,
+                color: player.color,
+                playerId: player.id,
+              ),
+            );
           }
         }
       }
@@ -146,8 +217,5 @@ class GameNotifier extends StateNotifier<GameState> {
           : (state.currentPlayerId == 1 ? 2 : 1),
       isGameOver: isGameOver,
     );
-    if (isGameOver) {
-      log('Game Over! Player 1: ${updatedPlayer1.score}, Player 2: ${updatedPlayer2.score}');
-    }
   }
 }

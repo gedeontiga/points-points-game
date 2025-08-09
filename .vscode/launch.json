@@ -5,18 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "maths_points_game",
+            "name": "squares_conquest",
             "request": "launch",
             "type": "dart"
         },
         {
-            "name": "maths_points_game (profile mode)",
+            "name": "squares_conquest (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"
         },
         {
-            "name": "maths_points_game (release mode)",
+            "name": "squares_conquest (release mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"

@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../core/services/game_database.dart';
 import '../models/game_state.dart';
-import '../models/repositories/game_database.dart';
 import '../core/services/game_notifier.dart';
 import '../core/widgets/game_grid.dart';
-import 'game_setting_dialog.dart';
+import 'game_history_screen.dart';
+import 'game_settings_dialog.dart';
 import '../core/widgets/player_score_board.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
@@ -17,18 +18,21 @@ class GameScreen extends ConsumerStatefulWidget {
 }
 
 class GameScreenState extends ConsumerState<GameScreen> {
-  @override
-  void initState() {
-    super.initState();
-    _loadGameState();
-  }
+  // bool _initialLoadComplete = false;
 
-  Future<void> _loadGameState() async {
-    final lastState = await GameDatabase.loadLastGameState(widget.database);
-    if (lastState != null && !lastState.isGameOver && mounted) {
-      ref.read(gameProvider.notifier).restoreGameState(lastState);
-    }
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _loadGameState();
+  // }
+
+  // Future<void> _loadGameState() async {
+  //   final gameNotifier = ref.read(gameProvider.notifier);
+  //   await gameNotifier.loadGame(widget.database);
+  //   setState(() {
+  //     _initialLoadComplete = true;
+  //   });
+  // }
 
   void showGameOverDialog(BuildContext context, GameState gameState) {
     final player1Score = gameState.player1.score;
@@ -102,17 +106,10 @@ class GameScreenState extends ConsumerState<GameScreen> {
               ),
             ],
             const SizedBox(height: 20),
-            Image.asset(
-              isTie ? 'assets/images/tie.png' : 'assets/images/trophy.png',
-              height: 80,
-              width: 80,
-              errorBuilder: (context, error, stackTrace) {
-                return const Icon(
-                  Icons.emoji_events,
-                  size: 80,
-                  color: Colors.amber,
-                );
-              },
+            Icon(
+              isTie ? Icons.handshake : Icons.emoji_events,
+              size: 80,
+              color: Colors.amber,
             ),
           ],
         ),
@@ -128,13 +125,8 @@ class GameScreenState extends ConsumerState<GameScreen> {
               ),
             ),
             onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      GameSettingsDialog(database: widget.database),
-                ),
-              );
+              Navigator.of(context).pop(); // Close the dialog first
+              showGameSettingsDialog(context); // Then show settings dialog
             },
             child: const Text(
               'New Game',
@@ -152,21 +144,59 @@ class GameScreenState extends ConsumerState<GameScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 400;
 
+    // The check is now simpler. It doesn't need _initialLoadComplete.
+    // If the provider says the game is over, we show the dialog.
     if (gameState.isGameOver) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        // Prevent dialog from showing if it's already open
+        if (ModalRoute.of(context)?.isCurrent != true) {
+          Navigator.of(context).pop();
+        }
         showGameOverDialog(context, gameState);
       });
     }
 
+    // A better place for autosave is to listen to changes.
+    ref.listen(gameProvider, (previous, next) {
+      // When the state changes, trigger an autosave.
+      ref.read(gameProvider.notifier).autoSave(widget.database);
+    });
+
+    ref.listen(gameProvider.select((s) => s.isGameOver),
+        (wasGameOver, isGameOver) {
+      // When the game state changes from "not over" to "over"
+      if (isGameOver && !(wasGameOver ?? false)) {
+        // Get the final state from the provider
+        final finalState = ref.read(gameProvider);
+        GameDatabase.saveCompletedGame(widget.database, finalState);
+      }
+    });
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Maths Points Game'),
+        title: const Text('Squares Conquest'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.restart_alt),
+            icon: const Icon(Icons.history),
+            tooltip: 'Game History',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const GameHistoryScreen()),
+              );
+            },
+          ),
+
+          // *** THIS IS THE BUTTON WE ARE CHANGING BACK ***
+          IconButton(
+            icon: const Icon(Icons.restart_alt_sharp),
             tooltip: 'New Game',
+            // We replace the showDialog logic with a direct call
+            // to your helper method.
             onPressed: () => showGameSettingsDialog(context),
           ),
+
           IconButton(
             icon: const Icon(Icons.save),
             tooltip: 'Save Game',
@@ -174,10 +204,7 @@ class GameScreenState extends ConsumerState<GameScreen> {
               await ref.read(gameProvider.notifier).saveGame(widget.database);
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Game saved!'),
-                    duration: Duration(seconds: 1),
-                  ),
+                  const SnackBar(content: Text('Game saved!')),
                 );
               }
             },
@@ -223,6 +250,7 @@ class GameScreenState extends ConsumerState<GameScreen> {
   }
 
   void showGameSettingsDialog(BuildContext context) {
+    ref.read(gameProvider.notifier).resetGameState();
     showDialog(
       context: context,
       barrierDismissible: false,

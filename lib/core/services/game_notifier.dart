@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../../main.dart';
+import '../../models/game_history.dart';
 import 'game_database.dart';
 import '../../models/game_state.dart';
 import '../../models/player.dart';
@@ -217,5 +219,37 @@ class GameNotifier extends StateNotifier<GameState> {
           : (state.currentPlayerId == 1 ? 2 : 1),
       isGameOver: isGameOver,
     );
+  }
+}
+
+class GameHistoryNotifier
+    extends StateNotifier<AsyncValue<List<GameHistoryEntry>>> {
+  GameHistoryNotifier(this.ref) : super(const AsyncValue.loading()) {
+    _init();
+  }
+
+  final Ref ref;
+  late final Database _db;
+
+  Future<void> _init() async {
+    try {
+      // Wait for the database to be available
+      _db = await ref.read(databaseProvider.future);
+      // Load the initial list of games
+      final games = await GameDatabase.loadCompletedGames(_db);
+      state = AsyncValue.data(games);
+    } catch (e, stackTrace) {
+      state = AsyncValue.error(e, stackTrace);
+    }
+  }
+
+  Future<void> addCompletedGame(GameState completedGameState) async {
+    // Save the game to the database and get the new entry
+    final newEntry =
+        await GameDatabase.saveCompletedGame(_db, completedGameState);
+
+    // Add the new game to the top of the list in the state
+    final previousState = state.value ?? [];
+    state = AsyncValue.data([newEntry, ...previousState]);
   }
 }

@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../core/services/game_database.dart';
+import '../core/services/game_notifier.dart';
 import '../core/widgets/game_history_card.dart';
-import '../main.dart';
 import '../models/game_history.dart'; // To get the databaseProvider
 
-// A provider to fetch the history data asynchronously
-final gameHistoryProvider = FutureProvider<List<GameHistoryEntry>>((ref) async {
-  final db = await ref.watch(databaseProvider.future);
-  return GameDatabase.loadCompletedGames(db);
-});
+final gameHistoryProvider = StateNotifierProvider<GameHistoryNotifier,
+    AsyncValue<List<GameHistoryEntry>>>(
+  (ref) => GameHistoryNotifier(ref),
+);
 
 class GameHistoryScreen extends ConsumerWidget {
   const GameHistoryScreen({super.key});

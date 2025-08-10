@@ -39,7 +39,8 @@ class GameDatabase {
   }
 
   // *** ADD THIS NEW METHOD TO SAVE A FINISHED GAME ***
-  static Future<void> saveCompletedGame(Database db, GameState state) async {
+  static Future<GameHistoryEntry> saveCompletedGame(
+      Database db, GameState state) async {
     final player1Score = state.player1.score;
     final player2Score = state.player2.score;
     int winnerId = 0; // 0 for a tie
@@ -49,14 +50,28 @@ class GameDatabase {
       winnerId = 2;
     }
 
-    await db.insert('completed_games', {
+    final finishedAt = DateTime.now();
+    final data = {
       'winner_id': winnerId,
       'player1_color': _colorToHex(state.player1.color),
       'player2_color': _colorToHex(state.player2.color),
       'player1_score': player1Score,
       'player2_score': player2Score,
       'grid_size': state.gridSize,
-    });
+      'finished_at': finishedAt.toIso8601String(),
+    };
+
+    await db.insert('completed_games', data);
+
+    return GameHistoryEntry(
+      winnerId: winnerId,
+      player1Color: state.player1.color,
+      player2Color: state.player2.color,
+      player1Score: player1Score,
+      player2Score: player2Score,
+      gridSize: state.gridSize,
+      finishedAt: finishedAt,
+    );
   }
 
   // *** ADD THIS NEW METHOD TO LOAD ALL COMPLETED GAMES ***

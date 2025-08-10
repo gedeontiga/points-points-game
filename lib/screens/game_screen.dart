@@ -18,22 +18,6 @@ class GameScreen extends ConsumerStatefulWidget {
 }
 
 class GameScreenState extends ConsumerState<GameScreen> {
-  // bool _initialLoadComplete = false;
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   _loadGameState();
-  // }
-
-  // Future<void> _loadGameState() async {
-  //   final gameNotifier = ref.read(gameProvider.notifier);
-  //   await gameNotifier.loadGame(widget.database);
-  //   setState(() {
-  //     _initialLoadComplete = true;
-  //   });
-  // }
-
   void showGameOverDialog(BuildContext context, GameState gameState) {
     final player1Score = gameState.player1.score;
     final player2Score = gameState.player2.score;
@@ -144,17 +128,19 @@ class GameScreenState extends ConsumerState<GameScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 400;
 
-    // The check is now simpler. It doesn't need _initialLoadComplete.
-    // If the provider says the game is over, we show the dialog.
-    if (gameState.isGameOver) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        // Prevent dialog from showing if it's already open
-        if (ModalRoute.of(context)?.isCurrent != true) {
-          Navigator.of(context).pop();
-        }
-        showGameOverDialog(context, gameState);
-      });
-    }
+    ref.listen<bool>(gameProvider.select((s) => s.isGameOver),
+        (wasGameOver, isGameOver) {
+      if (isGameOver && !(wasGameOver ?? false)) {
+        final finalState = ref.read(gameProvider);
+
+        // --- THIS IS THE KEY CHANGE ---
+        // Call the notifier to save the game and update the history state.
+        ref.read(gameHistoryProvider.notifier).addCompletedGame(finalState);
+
+        // Show the Game Over dialog
+        showGameOverDialog(context, finalState);
+      }
+    });
 
     // A better place for autosave is to listen to changes.
     ref.listen(gameProvider, (previous, next) {

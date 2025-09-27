@@ -5,7 +5,6 @@ import 'package:gif_view/gif_view.dart';
 import '../core/services/game_database.dart';
 import '../core/services/game_notifier.dart';
 import '../core/widgets/widget_text.dart';
-import '../main.dart';
 import 'game_screen.dart';
 import 'game_settings_dialog.dart';
 
@@ -75,16 +74,19 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   Future<Widget> _getDestinationScreen() async {
-    final db = await ref.read(databaseProvider.future);
-    final lastState = await GameDatabase.loadLastGameState(db);
+    // The database is now accessed via the notifier, not directly
+    final gameNotifier = ref.read(gameProvider.notifier);
+    final db = ref.read(gameDatabaseProvider);
+
+    final lastState = db.loadLastGameState(); // Synchronous call
 
     if (lastState != null && !lastState.isGameOver) {
-      // If there's a game to restore, load it into the provider
-      await ref.read(gameProvider.notifier).loadGame(db);
-      return GameScreen(database: db);
+      gameNotifier.loadGame();
+      // No longer need to pass the database object
+      return const GameScreen();
     } else {
-      // Otherwise, the destination is the settings dialog
-      return GameSettingsDialog(database: db);
+      // No longer need to pass the database object
+      return const GameSettingsDialog();
     }
   }
 
@@ -103,7 +105,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             GifView.asset(
-              'assets/maths_points_game_logo.gif',
+              'assets/squares_conquest_logo.gif',
               width: 200,
               height: 200,
               frameRate: 20,

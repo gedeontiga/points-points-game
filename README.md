@@ -1,6 +1,6 @@
 # Point-points Game
 
-<img src="assets/maths_points_game_logo.png" alt="Square Conquest Game Screenshot" />
+<img src="assets/squares_conquest_logo.png" alt="Square Conquest Game Screenshot" />
 
 ## Overview
 

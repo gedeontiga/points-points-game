@@ -2,9 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sqflite/sqflite.dart';
 
-import '../../main.dart';
 import '../../models/game_history.dart';
 import 'game_database.dart';
 import '../../models/game_state.dart';
@@ -13,15 +11,23 @@ import '../../models/point.dart';
 import '../../models/square.dart';
 
 final gameProvider = StateNotifierProvider<GameNotifier, GameState>((ref) {
-  return GameNotifier();
+  // Pass the ref to the notifier
+  return GameNotifier(ref);
+});
+
+// For Game History
+final gameHistoryProvider = StateNotifierProvider<GameHistoryNotifier,
+    AsyncValue<List<GameHistoryEntry>>>((ref) {
+  return GameHistoryNotifier(ref);
 });
 
 class GameNotifier extends StateNotifier<GameState> {
-  // Timer? _autoSaveTimer;
-  final bool _loadingFromDatabase = false;
+  final Ref _ref;
+  late final GameDatabase _db; // Hold an instance of the DB service
 
-  GameNotifier() : super(GameState.initial()) {
-    // _startAutoSaveTimer();
+  GameNotifier(this._ref) : super(GameState.initial()) {
+    // Read the database service from the provider
+    _db = _ref.read(gameDatabaseProvider);
   }
 
   void restartGame() {
@@ -30,23 +36,21 @@ class GameNotifier extends StateNotifier<GameState> {
     }
   }
 
-  Future<void> loadGame(Database db) async {
-    final savedState = await GameDatabase.loadLastGameState(db);
+  void loadGame() {
+    final savedState = _db.loadLastGameState();
     if (savedState != null) {
       final reconstructedState = _reconstructStateWithSquares(savedState);
       state = reconstructedState;
     }
   }
 
-  Future<void> autoSave(Database db) async {
-    // Only save if a game is active and not over.
+  Future<void> autoSave() async {
     if (state.points.isNotEmpty && !state.isGameOver) {
-      await GameDatabase.saveGameState(db, state);
+      await _db.saveGameState(state);
     }
   }
 
   GameState _reconstructStateWithSquares(GameState savedState) {
-    // ... your existing reconstruction logic is correct ...
     final reconstructedSquares = <Square>[];
     final Map<String, Color> points = savedState.points;
     for (int row = 0; row < savedState.gridSize; row++) {
@@ -95,19 +99,12 @@ class GameNotifier extends StateNotifier<GameState> {
   void initializeGame(int gridSize, Color player1Color, Color player2Color) {
     state = GameState(
       points: generateEmptyGrid(gridSize),
-      squares: [],
-      player1: Player(id: 1, color: player1Color),
-      player2: Player(id: 2, color: player2Color),
+      player1: Player(id: 1, color: player1Color, score: 0),
+      player2: Player(id: 2, color: player2Color, score: 0),
       currentPlayerId: 1,
       gridSize: gridSize,
       isGameOver: false,
     );
-  }
-
-  Future<void> saveGame(Database db) async {
-    if (!_loadingFromDatabase) {
-      await GameDatabase.saveGameState(db, state);
-    }
   }
 
   void restoreGameState(GameState savedState) {
@@ -225,18 +222,16 @@ class GameNotifier extends StateNotifier<GameState> {
 class GameHistoryNotifier
     extends StateNotifier<AsyncValue<List<GameHistoryEntry>>> {
   GameHistoryNotifier(this.ref) : super(const AsyncValue.loading()) {
-    _init();
+    _db = ref.read(gameDatabaseProvider); // Get the DB service
+    _loadGames();
   }
 
   final Ref ref;
-  late final Database _db;
+  late final GameDatabase _db;
 
-  Future<void> _init() async {
+  void _loadGames() {
     try {
-      // Wait for the database to be available
-      _db = await ref.read(databaseProvider.future);
-      // Load the initial list of games
-      final games = await GameDatabase.loadCompletedGames(_db);
+      final games = _db.loadCompletedGames();
       state = AsyncValue.data(games);
     } catch (e, stackTrace) {
       state = AsyncValue.error(e, stackTrace);
@@ -244,12 +239,8 @@ class GameHistoryNotifier
   }
 
   Future<void> addCompletedGame(GameState completedGameState) async {
-    // Save the game to the database and get the new entry
-    final newEntry =
-        await GameDatabase.saveCompletedGame(_db, completedGameState);
-
-    // Add the new game to the top of the list in the state
-    final previousState = state.value ?? [];
-    state = AsyncValue.data([newEntry, ...previousState]);
+    await _db.saveCompletedGame(completedGameState);
+    // Reload the list to ensure it's sorted correctly
+    _loadGames();
   }
 }

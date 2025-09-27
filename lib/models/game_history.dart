@@ -1,12 +1,29 @@
-import 'dart:ui';
+import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 
-class GameHistoryEntry {
-  final int winnerId; // 1 for Player 1, 2 for Player 2, 0 for a tie
+part 'game_history.g.dart';
+
+@HiveType(typeId: 2)
+class GameHistoryEntry extends HiveObject {
+  @HiveField(0)
+  final int winnerId;
+
+  @HiveField(1)
   final Color player1Color;
+
+  @HiveField(2)
   final Color player2Color;
+
+  @HiveField(3)
   final int player1Score;
+
+  @HiveField(4)
   final int player2Score;
+
+  @HiveField(5)
   final int gridSize;
+
+  @HiveField(6)
   final DateTime finishedAt;
 
   GameHistoryEntry({

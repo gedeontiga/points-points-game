@@ -1,18 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sqflite/sqflite.dart';
-
-import '../core/services/game_database.dart';
 import '../models/game_state.dart';
-import '../core/services/game_notifier.dart';
+import '../core/services/game_notifier.dart' show gameProvider;
 import '../core/widgets/game_grid.dart';
 import 'game_history_screen.dart';
 import 'game_settings_dialog.dart';
 import '../core/widgets/player_score_board.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
-  final Database database;
-  const GameScreen({required this.database, super.key});
+  const GameScreen({super.key});
   @override
   GameScreenState createState() => GameScreenState();
 }
@@ -142,20 +138,8 @@ class GameScreenState extends ConsumerState<GameScreen> {
       }
     });
 
-    // A better place for autosave is to listen to changes.
     ref.listen(gameProvider, (previous, next) {
-      // When the state changes, trigger an autosave.
-      ref.read(gameProvider.notifier).autoSave(widget.database);
-    });
-
-    ref.listen(gameProvider.select((s) => s.isGameOver),
-        (wasGameOver, isGameOver) {
-      // When the game state changes from "not over" to "over"
-      if (isGameOver && !(wasGameOver ?? false)) {
-        // Get the final state from the provider
-        final finalState = ref.read(gameProvider);
-        GameDatabase.saveCompletedGame(widget.database, finalState);
-      }
+      ref.read(gameProvider.notifier).autoSave();
     });
 
     return Scaffold(
@@ -181,19 +165,6 @@ class GameScreenState extends ConsumerState<GameScreen> {
             // We replace the showDialog logic with a direct call
             // to your helper method.
             onPressed: () => showGameSettingsDialog(context),
-          ),
-
-          IconButton(
-            icon: const Icon(Icons.save),
-            tooltip: 'Save Game',
-            onPressed: () async {
-              await ref.read(gameProvider.notifier).saveGame(widget.database);
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Game saved!')),
-                );
-              }
-            },
           ),
         ],
       ),
@@ -240,7 +211,7 @@ class GameScreenState extends ConsumerState<GameScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => GameSettingsDialog(database: widget.database),
+      builder: (context) => const GameSettingsDialog(),
     );
   }
 }

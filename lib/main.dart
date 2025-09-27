@@ -1,37 +1,29 @@
-import 'dart:io' show Platform;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path/path.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-// Your own project imports
-import 'core/services/game_database.dart'; // Ensure this path is correct
-import 'screens/splash_screen.dart'; // Ensure this path is correct
+import 'package:hive_flutter/hive_flutter.dart';
+import 'core/services/color_adapter.dart';
+import 'models/game_history.dart';
+import 'models/game_state.dart';
+import 'models/player.dart';
+import 'screens/splash_screen.dart';
 
-// 1. Create a provider that initializes the database asynchronously.
-// This provider will be watched by the UI to show loading/error/data states.
-final databaseProvider = FutureProvider<Database>((ref) async {
-  // This logic is now handled in the background by the provider.
-  final dbPath = await getDatabasesPath();
-  final path = join(dbPath, 'game_database.db');
-  return await openDatabase(
-    path,
-    version: 1,
-    onCreate: (db, version) => GameDatabase.createTables(db),
-  );
-});
-
-void main() {
-  if (Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
-    sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
-  }
-
-  // Ensure Flutter is ready before running the app.
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Run the app within a ProviderScope so providers are available everywhere.
+  // 1. Initialize Hive for Flutter
+  await Hive.initFlutter();
+
+  // 2. Register all your adapters
+  Hive.registerAdapter(ColorAdapter());
+  Hive.registerAdapter(GameStateAdapter());
+  Hive.registerAdapter(PlayerAdapter());
+  Hive.registerAdapter(GameHistoryEntryAdapter());
+
+  // 3. Open your boxes (like tables in SQL)
+  await Hive.openBox<GameState>('game_states');
+  await Hive.openBox<GameHistoryEntry>('completed_games');
+
   runApp(const ProviderScope(child: MyApp()));
 }
 
@@ -46,8 +38,6 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         useMaterial3: true,
       ),
-      // The SplashScreen no longer needs the database passed to it.
-      // It will get it from the provider.
       home: const SplashScreen(),
     );
   }

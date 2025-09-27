@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sqflite/sqflite.dart';
 
 import '../core/utils/grid_preview_painter.dart';
 import 'game_screen.dart';
 import '../core/services/game_notifier.dart';
 
 class GameSettingsDialog extends ConsumerStatefulWidget {
-  final Database database;
-
-  const GameSettingsDialog({required this.database, super.key});
+  const GameSettingsDialog({super.key});
 
   @override
   GameSettingsDialogState createState() => GameSettingsDialogState();
@@ -474,7 +471,7 @@ class GameSettingsDialogState extends ConsumerState<GameSettingsDialog>
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => GameScreen(database: widget.database),
+                    builder: (context) => const GameScreen(),
                   ),
                 );
               }
